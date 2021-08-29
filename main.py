@@ -24,11 +24,30 @@ def openImage(fileImage):
     # create pixel map
     pixels = image_pillow.load()
 
+    # show original image
     image_pillow.show()
-    for column in range(image_pillow.size[0]):
-        for row in range(image_pillow.size[1]):
-            pixels[column, row] = (0, 0, 0)
 
+    # iterate through pixels to try and change the color of a single pixel
+    # for column in range(image_pillow.size[0]):
+    #   for row in range(image_pillow.size[1]):
+    #      pixels[column, row] = (0, 0, 0)
+
+    # image_pillow.show()
+
+    # Approach 2
+    image_attempt = Image.open(fileImage, 'r')
+
+    # extract the pixel values
+    pixel_values = list(image_attempt.getdata())
+
+    # Fix list arrangement from tuples to list
+    pixel_values_arrange = [x for sets in pixel_values for x in sets]
+
+    print(pixel_values_arrange[1:3])
+    pixel_values_arrange[1:3] = (255, 0, 0)
+    coordinate = x, y = 0, 0
+
+    # show new image
     image_pillow.show()
 
 
