@@ -1,6 +1,10 @@
+#!/usr/bin/env python3
+
 from PIL import Image
 from matplotlib import pyplot
 from numpy import asarray
+import sys
+import os
 
 
 # Press Shift+F10 to execute it or replace it with your code.
@@ -45,8 +49,9 @@ def openImage(fileImage):
                 pixels[0, 1] = (0, 255, 255)
 
     # show new image
+    #image_pillow.show()
+    image_pillow.save("output.bmp")
     image_pillow.show()
-    #image_pillow.save("output.bmp")
 
     # Approach 2
     #image_attempt = Image.open(fileImage, 'r')
@@ -67,6 +72,31 @@ def openImage(fileImage):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+
+    # check for number of arguments
+    if len(sys.argv) != 4:
+        print("Usage: " + sys.argv[0] + "<dirname> <size>")
+        sys.exit(1)
+
+    # check that the first arg is a picture(i.e bmp)
+    if not os.path.exists(sys.argv[1]):
+        print(sys.argv[1] + " is not a file image")
+        sys.exit(1)
+
+    # given a single message save arg into variable
+    words = sys.argv[2]
+    sanitize_words = map(lambda w: w.strip(".,;!?'\"").lower(), words)
+    print(" ".join(sanitize_words))
+
+    # Minimum message length should be 1-32
+    min_message = int(sys.argv[3])
+    # To-Do validate that the min value is within that range
+
+    # Maximum message length should be 1-64
+    max_message = int(sys.argv[4])
+    # To-Do validate that the max value is within that range
+
+
     # load images
     fileImage = r'img/Img_02_24.bmp'
     openImage(fileImage)
