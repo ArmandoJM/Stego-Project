@@ -11,7 +11,7 @@ import os
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 
-def openImage(fileImage):
+def openImage(fileImage, message, min_message, max_message):
 
     # with Image.open(fileImage) as image:
     #     pixel = image.load()
@@ -24,11 +24,11 @@ def openImage(fileImage):
 
 
     img = Image.open(fileImage)
-    print(img)
+    # print(img)
 
     # convert image to numpy array
     data_image = asarray(img)
-    print(data_image.shape)
+    # print(data_image.shape)
 
     # create Pillow image
     image_pillow = Image.fromarray(data_image)
@@ -40,7 +40,7 @@ def openImage(fileImage):
     pixels = image_pillow.load()
 
     # show original image
-    image_pillow.show()
+    # image_pillow.show()
 
     # iterate through pixels to try and change the color of a single pixel
     for column in range(image_pillow.size[0]):
@@ -51,7 +51,7 @@ def openImage(fileImage):
     # show new image
     #image_pillow.show()
     image_pillow.save("output.bmp")
-    image_pillow.show()
+    # image_pillow.show()
 
     # Approach 2
     #image_attempt = Image.open(fileImage, 'r')
@@ -69,12 +69,42 @@ def openImage(fileImage):
     # show new image
     #image_pillow.show()
 
+    length = len(message)
+    # print(length)
+
+    # message minimum 1
+    if length < 1:
+        print("No message input")
+        return False
+    # copy of image to hide text in
+    encoded = image_pillow.copy()
+    width, height = image_pillow.size
+    index = 0
+    for row in range(height):
+        for column in range(width):
+            red, green, blue = image_pillow.getpixel((column, row))
+            # print(red, green, blue)
+            if row == 0 and column == 0 and index < length:
+                asc = length
+                print("asc = length: ", asc)
+            elif index <= length:
+                character = message[index - 1]
+                print("character = message[index-1]: " + character)
+                asc = ord(character)
+                print("asc = ord(character):", asc)
+            else:
+                asc = red
+                #print("asc=r: ", asc)
+            encoded.putpixel((column, row), (asc, green, blue))
+            index += 1
+    return encoded
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
     # check for number of arguments
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 5:
         print("Usage: " + sys.argv[0] + "<dirname> <size>")
         sys.exit(1)
 
@@ -85,8 +115,8 @@ if __name__ == '__main__':
 
     # given a single message save arg into variable
     words = sys.argv[2]
-    sanitize_words = map(lambda w: w.strip(".,;!?'\"").lower(), words)
-    print(" ".join(sanitize_words))
+    #sanitize_words = map(lambda w: w.strip(".,;!?'\"").lower(), words)
+    print("message is: " + words)
 
     # Minimum message length should be 1-32
     min_message = int(sys.argv[3])
@@ -96,9 +126,9 @@ if __name__ == '__main__':
     max_message = int(sys.argv[4])
     # To-Do validate that the max value is within that range
 
-
     # load images
-    fileImage = r'img/Img_02_24.bmp'
-    openImage(fileImage)
+    fileImage = sys.argv[1]
+    image_encoded = openImage(fileImage, words, min_message, max_message)
+
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
