@@ -67,27 +67,7 @@ def openImage(fileImage, message, min_message, max_message):
             # check to see if the pixel it's red if it isn't then change to cyan
             if pixels[column, row] != (255, 0, 0):
                 pixels[0, 1] = (0, 255, 255)
-            if i < len(bit_array):
-                # red pixel
-                red_bit = bin(red)
-                red_last_bit = int(red_bit[-1])
-                red_new_last_bit = red_last_bit & bit_array[i]
-                new_bit_red_pixel = int(red_bit[:-1]+str(red_new_last_bit), 2)
-                i += 1
-            if i < len(bit_array):
-                # Green pixel
-                green_bit = bin(green)
-                green_last_bit = int(green_bit[-1])
-                green_new_last_bit = green_last_bit & bit_array[i]
-                new_bit_green_pixel = int(green_bit[:-1]+str(green_new_last_bit), 2)
-                i += 1
-            if i < len(bit_array):
-                # Blue pixel
-                blue_bit = bin(blue)
-                blue_last_bit = int(blue_bit[-1])
-                blue_new_last_bit = blue_last_bit & bit_array[i]
-                new_bit_blue_pixel = int(blue_bit[:-1]+str(blue_new_last_bit), 2)
-                i += 1
+
         pixels[column, 0] = (new_bit_red_pixel, new_bit_green_pixel, new_bit_blue_pixel)
         print("\tAfter  : (%d, %d, %d)" % (new_bit_red_pixel, new_bit_green_pixel, new_bit_blue_pixel))
 
