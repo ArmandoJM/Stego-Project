@@ -4,7 +4,7 @@ from PIL import Image
 import base64
 import bitarray
 from matplotlib import pyplot
-from numpy import asarray
+import numpy as np
 import sys
 import os
 
@@ -13,69 +13,104 @@ import os
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 
-def openImage(fileImage, message, min_message, max_message):
-    # with Image.open(fileImage) as image:
-    #     pixel = image.load()
+def openImage(fileImage, message, destination):
 
-    # image.show()
-    # print(pixel[4, 4])
-    # pixel[4, 4] = (0,255, 255)
-    # print(pixel[4, 4])
-    # image.show()
+    # read the image from the parameter function
+    img = Image.open(fileImage, 'r')
 
-    img = Image.open(fileImage)
-    img.save("lsb_file.bmp")
+    # convert source image into an array of pixels, store the size of the image
+    width, height = img.size
+    array_pixels = np.array(list(img.getdata()))
 
-    im = Image.open("lsb_file.bmp")
-    width, height = im.size
-    # print(img)
+    # 3 bytes if the image is RGB
 
-    # convert image to numpy array
-    data_image = asarray(img)
-    # print(data_image.shape)
+    num_bits = 3
+    # this is just an idea
+    # how can i assign n to the amount of bits?
 
-    # create Pillow image
-    image_pillow = Image.fromarray(data_image)
-    print(image_pillow.format)
-    print(image_pillow.mode)
-    print(image_pillow.size)
+    # calculate the amount of pixels
+    total_pixels = array_pixels.size//num_bits
 
-    # create pixel map
-    pixels = image_pillow.load()
+    print("total pixels = ", total_pixels)
 
-    # show original image
-    # image_pillow.show()
-
-    # Converts the message into an array of bits
+    # how does the program knows where to stop the message?
+    # add a delimiter and convert the message to binary
+    message += "@"
+    # finally calculate the amount of pixels that will need to be embedded
     bits_array = bitarray.bitarray()
     bits_array.frombytes(message.encode('utf-8'))
     bit_array = [int(i) for i in bits_array]
     print("bit array: ", bit_array)
 
+
+    # new try
+    byte_message = ''.join([format(ord(i), "08b") for i in message])
+    req_pixels = len(byte_message)
+
+    # check if the total pixels available is enough for the secret message or not
+    # if yes then iterate thru pixels one by one to modify LSB to the bits of the message
+    # if not then proceed to throw an error message
+
+    if req_pixels > total_pixels:
+        print("Image size is smaller than message")
+    else:
+        index = 0
+        for i in range(total_pixels):
+            for j in range(0, 3):
+                if index < req_pixels:
+                    array_pixels[i][j] = int(bin(array_pixels[i][j])[2:9] + byte_message[index], 2)
+                    index += 1
+
+    array_pixels = array_pixels.reshape(height, width, num_bits)
+    encode_image = Image.fromarray(array_pixels.astype('uint8'), img.mode)
+    encode_image.save(destination)
+    print("Image encoded")
+
+
+
+
+
+
+
+    # create Pillow image
+    #image_pillow = Image.fromarray(data_image)
+    #print(image_pillow.format)
+    #print(image_pillow.mode)
+    #print(image_pillow.size)
+
+    # create pixel map
+    # pixels = image_pillow.load()
+
+    # show original image
+    # image_pillow.show()
+
+    # Converts the message into an array of bits
+
+
     # iterate through pixels to try and change the color of a single pixel
     i = 0
-    for column in range(image_pillow.size[0]):
-        red, green, blue = pixels[column, 0]
-        print("Pixel : [%d,%d]" % (1, 0)) #(column, 0)
-        print("\tBefore : (%d,%d,%d)" % (red, green, blue))
+    # for column in range(image_pillow.size[0]):
+    #     red, green, blue = pixels[column, 0]
+    #     print("Pixel : [%d,%d]" % (1, 0)) #(column, 0)
+    #     print("\tBefore : (%d,%d,%d)" % (red, green, blue))
+    #
+    #     # Default values for bits
+    #     new_bit_red_pixel = 0
+    #     new_bit_green_pixel = 255
+    #     new_bit_blue_pixel = 255
+    #     for row in range(image_pillow.size[1]):
+    #         # check to see if the pixel it's red if it isn't then change to cyan
+    #         if pixels[column, row] != (255, 0, 0):
+    #             pixels[0, 1] = (0, 255, 255)
+    #
+    #     pixels[column, 0] = (new_bit_red_pixel, new_bit_green_pixel, new_bit_blue_pixel)
+    #     print("\tAfter  : (%d, %d, %d)" % (new_bit_red_pixel, new_bit_green_pixel, new_bit_blue_pixel))img
 
-        # Default values for bits
-        new_bit_red_pixel = 0
-        new_bit_green_pixel = 255
-        new_bit_blue_pixel = 255
-        for row in range(image_pillow.size[1]):
-            # check to see if the pixel it's red if it isn't then change to cyan
-            if pixels[column, row] != (255, 0, 0):
-                pixels[0, 1] = (0, 255, 255)
-
-        pixels[column, 0] = (new_bit_red_pixel, new_bit_green_pixel, new_bit_blue_pixel)
-        print("\tAfter  : (%d, %d, %d)" % (new_bit_red_pixel, new_bit_green_pixel, new_bit_blue_pixel))
-
-    img.save('lsb_file.bmp')
+    # img.save('lsb_file.bmp')
 
     # show new image
     # image_pillow.show()
-    image_pillow.save("output.bmp")
+    #image_pillow.save("output.bmp")
     # image_pillow.show()
 
     # Approach 2
@@ -103,62 +138,21 @@ def openImage(fileImage, message, min_message, max_message):
         return False
 
     # copy of image to hide text in
-    encoded = image_pillow.copy()
-    width, height = image_pillow.size
-    index = 0
-    for row in range(height):
-        for column in range(width):
-            red, green, blue = image_pillow.getpixel((column, row))
-            # print(red, green, blue)
-            if row == 0 and column == 0 and index < length:
-                asc = length
-                print("asc = length: ", asc)
-            elif index <= length:
-                character = message[index - 1]
-                print("character = message[index-1]: " + character)
-                asc = ord(character)
-                print("asc = ord(character):", asc)
-            else:
-                asc = red
-                # print("asc=r: ", asc)
-            encoded.putpixel((column, row), (asc, green, blue))
-            index += 1
-    return encoded
+
 
 
 # Press the green button in the gutter to run the script.
 def openDecode(decodeImage):
 
-    extracted = ''
-
-    image = Image.open(decodeImage)
-    image.show()
-
-    pixels = image.load()
-
-    for x in range(0,image.width):
-        red,green,blue = pixels[x, 0]
-        # store LSB of each color channel of each pixel
-        extracted += bin(red)[-1]
-        extracted += bin(green)[-1]
-        extracted += bin(blue)[-1]
-        # print(extracted)
-
-    chars = []
-    for i in range(len(extracted)/8):
-        byte = extracted[i*8:(i+1)*8]
-        chars.append(chr(int(''.join([str(bit) for bit in byte]), 2)))
-
-    flag = (''.join(chars))
-    print(flag)
-
+    print("function yet to be program")
     pass
+
 
 
 if __name__ == '__main__':
 
     # check for number of arguments
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 3:
         print("Usage: " + sys.argv[0] + "<dirname> <size>")
         sys.exit(1)
 
@@ -173,16 +167,17 @@ if __name__ == '__main__':
     print("message is: " + words)
 
     # Minimum message length should be 1-32
-    min_message = int(sys.argv[3])
+    # min_message = int(sys.argv[3])
     # To-Do validate that the min value is within that range
 
     # Maximum message length should be 1-64
-    max_message = int(sys.argv[4])
+    # max_message = int(sys.argv[4])
     # To-Do validate that the max value is within that range
 
     # load images
     fileImage = sys.argv[1]
-    image_encoded = openImage(fileImage, words, min_message, max_message)
+    destination = 'output2.bmp'
+    image_encoded = openImage(fileImage, words, destination)
 
     decodeImage = r'lsb_file.bmp'
     openDecode(decodeImage)
