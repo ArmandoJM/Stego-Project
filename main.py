@@ -39,10 +39,10 @@ def openImage(fileImage, message, destination):
     # add a delimiter and convert the message to binary
 
     # finally calculate the amount of pixels that will need to be embedded
-    bits_array = bitarray.bitarray()
-    bits_array.frombytes(message.encode('utf-8'))
-    bit_array = [int(i) for i in bits_array]
-    print("bit array: ", bit_array)
+    # bits_array = bitarray.bitarray()
+    # bits_array.frombytes(message.encode('utf-8'))
+    # bit_array = [int(i) for i in bits_array]
+    # print("bit array: ", bit_array)
 
     # new try
     message += "$t3go"
@@ -58,7 +58,7 @@ def openImage(fileImage, message, destination):
     for i in range(total_pixels):
         for j in range(0, 3):
             if index < req_pixels:
-                array_pixels[i][j] = int(bin(array_pixels[i][j])[2:9] + byte_message[index], 2)
+                array_pixels[i][j] = int(bin(array_pixels[i][j])[2:10] + byte_message[index], 2)
                 index += 1
 
     array_pixels = array_pixels.reshape(height, width, num_bits)
@@ -106,15 +106,15 @@ def openDecode(decodeImage):
 
     hidden_bits = [hidden_bits[i:i + 8] for i in range(0, len(hidden_bits), 8)]
 
-    message = ""
+    message = "$t3go"
     for i in range(len(hidden_bits)):
-        if message[-10:] == "$t3go":
+        if message[-5:] == "$t3go":
             break
         else:
             message += chr(int(hidden_bits[i], 2))
 
     if "$t3go" in message:
-        print("Hidden message: ", message[:-10])
+        print("Hidden message: ", message[1:10])
     else:
         print("No hidden message found")
 
@@ -135,23 +135,23 @@ if __name__ == '__main__':
         data_file = sys.argv[3]
 
     # check for number of arguments
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 5:
         print("Usage: " + sys.argv[0] + "<dirname> <size>")
         sys.exit(1)
 
     # check that the first arg is a picture(i.e bmp)
-    if not os.path.exists(sys.argv[1]):
-        print(sys.argv[1] + " is not a file image")
+    if not os.path.exists(sys.argv[2]):
+        print(sys.argv[2] + " is not a file image")
         sys.exit(1)
 
     # read file for embedded message to be hidden
-    file = open(sys.argv[2], encoding='utf-8')
+    file = open(sys.argv[3], encoding='utf-8')
 
     # ToDo:
     # check if stegofile exists, write to datafile
     # call a function for extracting
     # load images
-    fileImage = sys.argv[1]
+    fileImage = sys.argv[2]
     destination = 'output2.bmp'
     image_encoded = openImage(fileImage, file.read(), destination)
 
