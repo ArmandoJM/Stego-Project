@@ -3,7 +3,6 @@ import imageio.core
 from PIL import Image
 import base64
 import bitarray
-from matplotlib import pyplot
 import numpy as np
 import sys
 import os
@@ -45,7 +44,6 @@ def openImage(fileImage, message, destination):
     # print("bit array: ", bit_array)
 
     # new try
-    message += "$t3go"
     byte_message = ''.join([format(ord(i), "08b") for i in message])
     req_pixels = len(byte_message)
 
@@ -106,17 +104,11 @@ def openDecode(decodeImage):
 
     hidden_bits = [hidden_bits[i:i + 8] for i in range(0, len(hidden_bits), 8)]
 
-    message = "$t3go"
+    message = ""
     for i in range(len(hidden_bits)):
-        if message[-5:] == "$t3go":
-            break
-        else:
-            message += chr(int(hidden_bits[i], 2))
+        message += chr(int(hidden_bits[i], 2))
 
-    if "$t3go" in message:
-        print("Hidden message: ", message[1:10])
-    else:
-        print("No hidden message found")
+    print("Hidden message: ", message[:-5])
 
 
 if __name__ == '__main__':
