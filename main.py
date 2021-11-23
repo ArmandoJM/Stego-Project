@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-import imageio.core
+import io
 from PIL import Image
-import base64
-import bitarray
 import numpy as np
 import sys
 import os
@@ -23,7 +21,7 @@ def openImage(fileImage, message, destination):
     # calculate the amount of pixels
     total_pixels = array_pixels.size // num_bits
 
-    print("total pixels = ", total_pixels)
+    # print("total pixels = ", total_pixels)
 
     # check if message is bigger than the pixel size
     # what we want to do is hide and if the message doesn't fit then print message
@@ -87,7 +85,7 @@ def messageToBinary(message):
 
 
 # reads image to get all the bits of every pixel of it.
-def openDecode(decodeImage):
+def openDecode(decodeImage, data_file):
     num_bytes = 0
     img = Image.open(decodeImage, 'r')
     array_image = np.array(list(img.getdata()))
@@ -104,11 +102,14 @@ def openDecode(decodeImage):
 
     hidden_bits = [hidden_bits[i:i + 8] for i in range(0, len(hidden_bits), 8)]
 
-    message = ""
-    for i in range(len(hidden_bits)):
-        message += chr(int(hidden_bits[i], 2))
+    with open(data_file, "w", encoding="utf-8") as message:
+        for i in range(len(hidden_bits)):
+            message.write(chr(int(hidden_bits[i], 2)))
 
-    print("Hidden message: ", message[:-5])
+
+
+
+    # print("Hidden message: ", message[:-5])
 
 
 if __name__ == '__main__':
@@ -119,34 +120,31 @@ if __name__ == '__main__':
         cover_file = sys.argv[3]
         stego_file = sys.argv[4]
 
+        # read file for embedded message to be hidden
+        file = open(sys.argv[3], encoding='utf-8')
+
+        # ToDo:
+        # check if stegofile exists, write to datafile
+        # call a function for extracting
+        # load images
+        fileImage = sys.argv[2]
+        image_encoded = openImage(fileImage, file.read(), stego_file)
+
     # ToDo: check if files datafile and coverfile exist write to the stegofile
     # i guess if it's specified
 
     if program_flag == '-e':
         stego_file = sys.argv[2]
         data_file = sys.argv[3]
+        # decode image
+        openDecode(stego_file, data_file)
 
-    # check for number of arguments
-    if len(sys.argv) != 5:
-        print("Usage: " + sys.argv[0] + "<dirname> <size>")
-        sys.exit(1)
 
     # check that the first arg is a picture(i.e bmp)
     if not os.path.exists(sys.argv[2]):
         print(sys.argv[2] + " is not a file image")
         sys.exit(1)
 
-    # read file for embedded message to be hidden
-    file = open(sys.argv[3], encoding='utf-8')
 
-    # ToDo:
-    # check if stegofile exists, write to datafile
-    # call a function for extracting
-    # load images
-    fileImage = sys.argv[2]
-    destination = 'output2.bmp'
-    image_encoded = openImage(fileImage, file.read(), destination)
 
-    # decode image
-    decodeImage = r'output2.bmp'
-    openDecode(decodeImage)
+
