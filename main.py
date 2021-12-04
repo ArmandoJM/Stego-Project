@@ -1,150 +1,144 @@
 #!/usr/bin/env python3
-import io
+
 from PIL import Image
-import numpy as np
 import sys
-import os
 
 
-def openImage(fileImage, message, destination):
-    # read the image from the parameter function
-    img = Image.open(fileImage, 'r')
+# manage the manipulation of the message file to be embedded
+def generateData(data):
+    file = open(data).read()
 
-    # convert source image into an array of pixels, store the size of the image
-    width, height = img.size
-    array_pixels = np.array(list(img.getdata()))
+    # list of given data in binary array
+    new_data = []
 
-    # 3 bytes if the image is RGB
-    # this is just an idea
-    num_bits = 3
+    for i in file:
+        new_data.append(format(ord(i), '08b'))
 
-    # calculate the amount of pixels
-    total_pixels = array_pixels.size // num_bits
-
-    # print("total pixels = ", total_pixels)
-
-    # check if message is bigger than the pixel size
-    # what we want to do is hide and if the message doesn't fit then print message
-    # hide it until runs out of image/message then print to the screen message didn't complete
-    # is there more image or message , no then? it didn't fit
-    # example hiding 4GB size
-    #
-    # GOAL is to hide more significant bit
+    return new_data
 
 
-    # how does the program knows where to stop the message?
-    # add a delimiter and convert the message to binary
+# pixels are changed into 8 bit binary
+def modePix(pix, data):
+    datalist = generateData(data)
+    lendata = len(datalist)
+    imdata = iter(pix)
 
-    # finally calculate the amount of pixels that will need to be embedded
-    # bits_array = bitarray.bitarray()
-    # bits_array.frombytes(message.encode('utf-8'))
-    # bit_array = [int(i) for i in bits_array]
-    # print("bit array: ", bit_array)
+    for i in range(lendata):
 
-    # new try
-    byte_message = ''.join([format(ord(i), "08b") for i in message])
-    req_pixels = len(byte_message)
+        # extract 3 pixels at the time
+        pix = [value for value in imdata.__next__()[:3] +
+               imdata.__next__()[:3] +
+               imdata.__next__()[:3]]
 
-    # check if the total pixels available is enough for the secret message or not
-    # if yes then iterate thru pixels one by one to modify LSB to the bits of the message
-    # if not then proceed to throw an error message
+        # Pixel value should be made
+        # odd for 1 and even for 0
+        for j in range(0, 8):
+            if datalist[i][j] == '0' and pix[j] % 2 != 0:
+                pix[j] = pix[j] & 0xFE
+            elif datalist[i][j] == '1' and pix[j] % 2 == 0:
+                if pix[j] != 0:
+                    pix[j] = pix[j] | 0x01
+                else:
+                    pix[j] += 1
 
+        # eight pixels of every set tells to stop or to keep reading
+        # 0 means message is done
+        if i == lendata - 1:
+            if pix[-1] % 2 == 0:
+                if pix[-1] != 0:
+                    pix[-1] -= 1
+                else:
+                    pix[-1] += 1
+        else:
+            if pix[-1] % 2 != 0:
+                pix[-1] -= 1
 
-    index = 0
-    for i in range(total_pixels):
-        for j in range(0, 3):
-            if index < req_pixels:
-                array_pixels[i][j] = int(bin(array_pixels[i][j])[2:10] + byte_message[index], 2)
-                index += 1
-
-    array_pixels = array_pixels.reshape(height, width, num_bits)
-    encode_image = Image.fromarray(array_pixels.astype('uint8'), img.mode)
-    encode_image.save(destination)
-    #print("Image encoded")
-
-    length = len(message)
-    # print(length)
-
-    # message minimum 1
-    if length < 1:
-        print("No message input")
-        return False
-
-
-# Converts the string into binary
-def messageToBinary(message):
-    # Convert "string" to binary format
-    if type(message) == str:
-        return ''.join([format(ord(i), "08b") for i in message])
-    elif type(message) == bytes or type(message) == np.array:
-        return [format(i, "08b") for i in message]
-    elif type(message) == int or type(message) == np.uint8:
-        return format(message, "08b")
-    else:
-        raise TypeError("File image not supported")
+        # implemented yield notation because of the use of tuples sliced
+        # instead of returning a value one at the time making it slow
+        # so in this case the generator function produces a sequence of values
+        pix = tuple(pix)
+        yield pix[0:3]
+        yield pix[3:6]
+        yield pix[6:9]
 
 
-# reads image to get all the bits of every pixel of it.
-def openDecode(decodeImage, data_file):
+# function that takes care of the new pixels
+def encode_enc(newimg, data):
+    w = newimg.size[0]
+    (x, y) = (0, 0)
+
+    # the new pixels go into the new image
+    for pixel in modePix(newimg.getdata(), data):
+        newimg.putpixel((x, y), pixel)
+        if x == w - 1:
+            x = 0
+            y += 1
+        else:
+            x += 1
+
+
+def encode():
+    data_file = sys.argv[2]
+    image = Image.open(data_file, 'r')
+
+    cover_file = sys.argv[3]
+    if len(cover_file) == 0:
+        raise ValueError('Data is empty')
+
+    # read file for embedded message to be hidden
+    data = sys.argv[3]
+    newimg = image.copy()
+    encode_enc(newimg, data)
+
+    stego_file = sys.argv[4]
+    newimg.save(stego_file)
+
+
+# decode function
+def decode(decodeImage, data_file):
     num_bytes = 0
     img = Image.open(decodeImage, 'r')
-    array_image = np.array(list(img.getdata()))
 
-    if img.mode == 'RGB':
-        num_bytes = 3
+    data = ''
+    imgdata = iter(img.getdata())
 
-    total_pixels = array_image.size // num_bytes
+    # extract 3 pixels at a time
+    while True:
+        pixels = [value for value in imgdata.__next__()[:3] +
+                  imgdata.__next__()[:3] + imgdata.__next__()[:3]]
 
-    hidden_bits = ""
-    for p in range(total_pixels):
-        for q in range(0, 3):
-            hidden_bits += (bin(array_image[p][q])[2:][-1])
+        # string of binary data
+        binstr = ''
 
-    hidden_bits = [hidden_bits[i:i + 8] for i in range(0, len(hidden_bits), 8)]
+        for i in pixels[:8]:
+            if i % 2 == 0:
+                binstr += '0'
+            else:
+                binstr += '1'
 
-    with open(data_file, "w", encoding="utf-8") as message:
-        for i in range(len(hidden_bits)):
-            message.write(chr(int(hidden_bits[i], 2)))
-
-
-
-
-    # print("Hidden message: ", message[:-5])
+        # int to char base 2 and return the decoded message
+        data += chr(int(binstr,2))
+        if pixels[-1] % 2 != 0:
+            return data
 
 
-if __name__ == '__main__':
-
+def main():
+    # ecnode flag
     program_flag = sys.argv[1]
     if program_flag == '-h':
-        data_file = sys.argv[2]
-        cover_file = sys.argv[3]
-        stego_file = sys.argv[4]
+        encode()
 
-        # read file for embedded message to be hidden
-        file = open(sys.argv[3], encoding='utf-8')
-
-        # ToDo:
-        # check if stegofile exists, write to datafile
-        # call a function for extracting
-        # load images
-        fileImage = sys.argv[2]
-        image_encoded = openImage(fileImage, file.read(), stego_file)
-
-    # ToDo: check if files datafile and coverfile exist write to the stegofile
-    # i guess if it's specified
-
+    # decode flag
     if program_flag == '-e':
         stego_file = sys.argv[2]
         data_file = sys.argv[3]
         # decode image
-        openDecode(stego_file, data_file)
+        data_message = decode(stego_file, data_file)
+        # write back to file
+        with open(data_file, "w") as message:
+                message.write(data_message)
+        #print("Message here : ", data_message)
 
 
-    # check that the first arg is a picture(i.e bmp)
-    if not os.path.exists(sys.argv[2]):
-        print(sys.argv[2] + " is not a file image")
-        sys.exit(1)
-
-
-
-
+if __name__ == '__main__':
+    main()
