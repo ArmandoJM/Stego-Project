@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import io
+import os
+
 from PIL import Image
 import sys
 
@@ -136,7 +138,7 @@ def main():
         # decode image
         data_message = decode(stego_file, data_file)
         # write back to file
-        with open(data_file, "w", newline="\n") as message:
+        with open(data_file, "w", newline='\r') as message:
                 message.write(data_message)
         #print("Message here : ", data_message)
 
