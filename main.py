@@ -36,13 +36,13 @@ def modePix(pix, data):
         # Pixel value should be made
         # odd for 1 and even for 0
         for j in range(0, 8):
-            if datalist == 1 and (pix[j] & 0x10) != 0:
+            if datalist[i][j] == 1 and (pix[j] & 0x10) != 0:
                 print("datalist == 1? :", datalist, "pix[j] != ", pix[j])
                 continue
-            if datalist == 0 and (pix[j] & 0x10) == 0:
+            if datalist[i][j] == 0 and (pix[j] & 0x10) == 0:
                 print("datalist == 0? : ", datalist, "pix[j] == ", pix[j])
                 continue
-            if datalist == 1:
+            if datalist[i][j] == 1:
                 if pix[j] < 16:
                     pix[j] = 16
                     continue
@@ -51,7 +51,7 @@ def modePix(pix, data):
                     pix[j] + (16 - x)
                 else:
                     pix[j] = pix[j] - (x + 1)
-            if datalist == 0:
+            if datalist[i][j] == 0:
                 if pix[j] > 240:
                     pix[j] = 240
                     continue
@@ -164,15 +164,7 @@ def main():
         with open(data_file, "w+", encoding='utf-8') as message:
             message.write(data_message)
 
-        f = open("result.txt", "rb")
-        try:
-            byte = f.read(1)
-            while byte != "":
-                # Do stuff with byte.
-                byte = f.read(1)
-                print(byte)
-        finally:
-            f.close()
+
 
 
 
