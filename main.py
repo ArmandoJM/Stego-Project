@@ -36,10 +36,10 @@ def modePix(pix, data):
         # Pixel value should be made
         # odd for 1 and even for 0
         for j in range(0, 8):
-            if datalist[i][j] == 1 and (pix[j] & 0x10) != 0:
+            if datalist[i][j] == '1' and (pix[j] & 0x10) != 0:
                 print("datalist == 1? :", datalist, "pix[j] != ", pix[j])
                 continue
-            if datalist[i][j] == 0 and (pix[j] & 0x10) == 0:
+            if datalist[i][j] == '0' and (pix[j] & 0x10) == 0:
                 print("datalist == 0? : ", datalist, "pix[j] == ", pix[j])
                 continue
             if datalist[i][j] == 1:
@@ -47,19 +47,15 @@ def modePix(pix, data):
                     pix[j] = 16
                     continue
                 x = pix[j] & 0xF
-                if x >= 8:
-                    pix[j] + (16 - x)
-                else:
+                if x <= 8:
                     pix[j] = pix[j] - (x + 1)
             if datalist[i][j] == 0:
                 if pix[j] > 240:
                     pix[j] = 240
                     continue
                 x = pix[j] & 0xF
-                if x >= 8:
-                    pix[j] = pix[j] + (16-x)
-                else:
-                    pix[j] = pix[j] - (x+1)
+                if x <= 8:
+                    pix[j] = pix[j] - (x + 1)
             #
             # if datalist[i][j] == '0':
             #     pix[j] = pix[j] & 0xFE
@@ -121,7 +117,7 @@ def encode():
 
 
 # decode function
-def decode(decodeImage, data_file):
+def decode(decodeImage):
     num_bytes = 0
     img = Image.open(decodeImage, 'r')
 
@@ -137,15 +133,17 @@ def decode(decodeImage, data_file):
         binstr = ''
 
         for i in pixels[:8]:
-            if (i & 0x10) == 0:
+            if i & 0x10 == 0:
                 binstr += '0'
             else:
                 binstr += '1'
 
         # int to char base 2 and return the decoded message
+        # I think this is incorrect the way it's returning the decoded message,
         data += chr(int(binstr, 2))
-        if pixels[-1] % 2 != 0:
+        if pixels[-1] & 0x10 == 0:
             return data
+
 
 
 def main():
@@ -159,16 +157,10 @@ def main():
         stego_file = sys.argv[2]
         data_file = sys.argv[3]
         # decode image
-        data_message = decode(stego_file, data_file)
+        data_message = decode(stego_file)
         # write back to file
         with open(data_file, "w+", encoding='utf-8') as message:
             message.write(data_message)
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
