@@ -43,7 +43,7 @@ def modePix(pix, data):
                 # print("datalist[i][j] == '0' -> : ", datalist, "pix[j] == ", pix[j])
                 continue
             if datalist[i][j] == '1':
-                if pix[j] < 16:
+                if pix[j] <= 16:
                     pix[j] = 16
                     continue
                 x = pix[j] & 0xF
@@ -52,7 +52,7 @@ def modePix(pix, data):
                 else:
                     pix[j] = pix[j] - (x + 1)
             if datalist[i][j] == '0':
-                if pix[j] > 240:
+                if pix[j] >= 240:
                     pix[j] = 240
                     continue
                 x = pix[j] & 0xF
