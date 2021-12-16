@@ -145,7 +145,7 @@ def decode(decodeImage, data_file):
         # int to char base 2 and return the decoded message
         # I think this is incorrect the way it's returning the decoded message,
         data += chr(int(binstr, 2))
-        if pixels[-1] & 0x10 == 0:
+        if pixels[-1] % 2 != 0:
             return data
 
 
@@ -162,8 +162,8 @@ def main():
         # decode image
         data_message = decode(stego_file, data_file)
         # write back to file
-        with open(data_file, 'wb') as message:
-            message.write(data_message.encode('utf-8', 'ignore'))
+        with open(data_file, "w+", encoding='utf-8') as message:
+            message.write(data_message)
 
 
 if __name__ == '__main__':
