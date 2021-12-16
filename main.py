@@ -36,10 +36,10 @@ def modePix(pix, data):
         # Pixel value should be made
         # odd for 1 and even for 0
         for j in range(0, 8):
-            if datalist[i][j] == '1' and (pix[j] & 0x10) != '0':
+            if datalist[i][j] == '1' and (pix[j] & 0x10) != 0:
                 # print("datalist[i][j] == '1' -> :", datalist, "pix[j] != ", pix[j])
                 continue
-            if datalist[i][j] == '0' and (pix[j] & 0x10) == '0':
+            if datalist[i][j] == '0' and (pix[j] & 0x10) == 0:
                 # print("datalist[i][j] == '0' -> : ", datalist, "pix[j] == ", pix[j])
                 continue
             if datalist[i][j] == '1':
@@ -48,7 +48,7 @@ def modePix(pix, data):
                     continue
                 x = pix[j] & 0xF
                 if x >= 8:
-                    pix[j] + (16 - x)
+                    pix[j] = pix[j] + (16 - x)
                 else:
                     pix[j] = pix[j] - (x + 1)
             if datalist[i][j] == '0':
