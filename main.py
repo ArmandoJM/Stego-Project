@@ -121,7 +121,7 @@ def encode():
 
 
 # decode function
-def decode(decodeImage,data_file):
+def decode(decodeImage, data_file):
     num_bytes = 0
     img = Image.open(decodeImage, 'r')
 
@@ -149,7 +149,6 @@ def decode(decodeImage,data_file):
             return data
 
 
-
 def main():
     # ecnode flag
     program_flag = sys.argv[1]
@@ -161,10 +160,10 @@ def main():
         stego_file = sys.argv[2]
         data_file = sys.argv[3]
         # decode image
-        data_message = decode(stego_file,data_file)
+        data_message = decode(stego_file, data_file)
         # write back to file
-        with open(data_file, "w", newline='\r') as message:
-            message.write(data_message)
+        with open(data_file, 'wb') as message:
+            message.write(data_message.encode('utf-8', 'ignore'))
 
 
 if __name__ == '__main__':
