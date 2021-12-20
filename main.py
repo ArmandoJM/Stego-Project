@@ -52,14 +52,18 @@ def modePix(pix, data):
                 else:
                     pix[j] = pix[j] - (x + 1)
             if datalist[i][j] == '0':
-                if pix[j] >= 240:
-                    pix[j] = 240
-                    continue
-                x = pix[j] & 0xF
-                if x >= 8:
-                    pix[j] = pix[j] + (16 - x)
-                else:
-                    pix[j] = pix[j] - (x + 1)
+                pix[j] = pix[j] & 0xEF
+            elif datalist[i][j] == '1':
+                    pix[j] = pix[j] | 0x10
+            # if datalist[i][j] == '0':
+            #     if pix[j] >= 240:
+            #         pix[j] = 240
+            #         continue
+            #     x = pix[j] & 0xF
+            #     if x >= 8:
+            #         pix[j] = pix[j] + (16 - x)
+            #     else:
+            #         pix[j] = pix[j] - (x + 1)
             #
             # if datalist[i][j] == '0':
             #     pix[j] = pix[j] & 0xFE
@@ -144,6 +148,11 @@ def decode(decodeImage, data_file):
 
         # int to char base 2 and return the decoded message
         # I think this is incorrect the way it's returning the decoded message,
+        # data += chr(int(binstr, 2))
+        # if pixels[-1] % 2 != 0:
+        #     return data
+
+
         data += chr(int(binstr, 2))
         if pixels[-1] % 2 != 0:
             return data
@@ -162,8 +171,9 @@ def main():
         # decode image
         data_message = decode(stego_file, data_file)
         # write back to file
-        with open(data_file, "w+", encoding='utf-8') as message:
-            message.write(data_message)
+
+        with open(data_file, 'wb') as message:
+            message.write(data_message.encode('utf-8'))
 
 
 if __name__ == '__main__':
