@@ -31,13 +31,13 @@ def modePix(pix, data):
 
     if len(sys.argv) < 6 or sys.argv[1] == '4':
         bit_length = '4'
-        print('4')
+        # print('4')
     elif sys.argv[1] == '5':
         bit_length = 5
-        print('5')
+        # print('5')
     elif sys.argv[1] == '6':
         bit_length = 6
-        print('6')
+        # print('6')
 
     # if bit_length == 4:
     for i in range(lendata):
