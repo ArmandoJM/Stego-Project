@@ -2,6 +2,7 @@
 
 import io
 import os
+import sys
 
 from PIL import Image
 import sys
@@ -22,13 +23,24 @@ def generateData(data):
 
 # pixels are changed into 8 bit binary
 def modePix(pix, data):
+
+    bit_length = ''
     datalist = generateData(data)
     lendata = len(datalist)
     imdata = iter(pix)
-    bit_length = sys.argv[3]
 
+    if len(sys.argv) < 6 or sys.argv[1] == '4':
+        bit_length = '4'
+        print('4')
+    elif sys.argv[1] == '5':
+        bit_length = 5
+        print('5')
+    elif sys.argv[1] == '6':
+        bit_length = 6
+        print('6')
+
+    # if bit_length == 4:
     for i in range(lendata):
-
         # extract 3 pixels at the time
         pix = [value for value in imdata.__next__()[:3] +
                imdata.__next__()[:3] +
@@ -36,9 +48,8 @@ def modePix(pix, data):
 
         # Pixel value should be made
         # odd for 1 and even for 0
-
-        if bit_length == 4:
-            for j in range(0, 8):
+        for j in range(0, 8):
+            if bit_length == 4:  # note to yourself use ' ' not just 4 by itself dumbdumb
                 if datalist[i][j] == '1' and (pix[j] & 0x10) != 0:
                     # print("datalist[i][j] == '1' -> :", datalist, "pix[j] != ", pix[j])
                     continue
@@ -49,86 +60,81 @@ def modePix(pix, data):
                     if pix[j] <= 16:
                         pix[j] = 16
                         continue
-                    x = pix[j] & 0xF  # 15
+                    x = pix[j] & 0xF
                     if x >= 8:
                         pix[j] = pix[j] + (16 - x)
                     else:
                         pix[j] = pix[j] - (x + 1)
                 if datalist[i][j] == '0':
-                    pix[j] = pix[j] & 0xEF  # 0xEF = 239
-                elif datalist[i][j] == '1':
-                        pix[j] = pix[j] | 0x10  # 0x10 = 16 decimal
-                if datalist[i][j] == '0':
                     if pix[j] >= 240:
-                        pix[j] = 240
+                        pix[j] = 239
                         continue
                     x = pix[j] & 0xF  # 0xF = 15 decimal
                     if x >= 8:
                         pix[j] = pix[j] + (16 - x)
                     else:
                         pix[j] = pix[j] - (x + 1)
-        # bit 5 for hiding
-        elif bit_length == 5:
-            for j in range(0, 8):
-                if datalist[i][j] == '1' and (pix[j] & 0x20) != 0:
-                    # print("datalist[i][j] == '1' -> :", datalist, "pix[j] != ", pix[j])
-                    continue
-                if datalist[i][j] == '0' and (pix[j] & 0x20) == 0:
-                    # print("datalist[i][j] == '0' -> : ", datalist, "pix[j] == ", pix[j])
-                    continue
-                if datalist[i][j] == '1':
-                    if pix[j] <= 32:
-                        pix[j] = 32
+            if bit_length == 5:
+                for j in range(0, 8):
+                    if datalist[i][j] == '1' and (pix[j] & 0x20) != 0:
+                        # print("datalist[i][j] == '1' -> :", datalist, "pix[j] != ", pix[j])
                         continue
-                    x = pix[j] & 0x1F  # 31
-                    if x >= 16:
-                        pix[j] = pix[j] + (32 - x)
-                    else:
-                        pix[j] = pix[j] - (x + 1)
-                if datalist[i][j] == '0':
-                    pix[j] = pix[j] & 0xDF  # 0xDF = 223
-                elif datalist[i][j] == '1':
-                    pix[j] = pix[j] | 0x20  # 0x20 = 32 decimal
-                if datalist[i][j] == '0':
-                    if pix[j] >= 224:
-                        pix[j] = 224
+                    if datalist[i][j] == '0' and (pix[j] & 0x20) == 0:
+                        # print("datalist[i][j] == '0' -> : ", datalist, "pix[j] == ", pix[j])
                         continue
-                    x = pix[j] & 0x1F  # 0x1F = 31 decimal
-                    if x >= 16:
-                        pix[j] = pix[j] + (32 - x)
-                    else:
-                        pix[j] = pix[j] - (x + 1)
-        # bit 6 for hiding
-        elif bit_length == 6:
-            for j in range(0, 8):
-                if datalist[i][j] == '1' and (pix[j] & 0x40) != 0:
-                    # print("datalist[i][j] == '1' -> :", datalist, "pix[j] != ", pix[j])
-                    continue
-                if datalist[i][j] == '0' and (pix[j] & 0x40) == 0:
-                    # print("datalist[i][j] == '0' -> : ", datalist, "pix[j] == ", pix[j])
-                    continue
-                if datalist[i][j] == '1':
-                    if pix[j] <= 64:
-                        pix[j] = 64
+                    if datalist[i][j] == '1':
+                        if pix[j] <= 32:
+                            pix[j] = 32
+                            continue
+                        x = pix[j] & 0x1F  # 31
+                        if x >= 16:
+                            pix[j] = pix[j] + (32 - x)
+                        else:
+                            pix[j] = pix[j] - (x + 1)
+                    # if datalist[i][j] == '0':
+                    #     pix[j] = pix[j] & 0xDF  # 0xDF = 223
+                    # elif datalist[i][j] == '1':
+                    #     pix[j] = pix[j] | 0x20  # 0x20 = 32 decimal
+                    if datalist[i][j] == '0':
+                        if pix[j] >= 224:
+                            pix[j] = 223
+                            continue
+                        x = pix[j] & 0x1F  # 0x1F = 31 decimal
+                        if x >= 16:
+                            pix[j] = pix[j] + (32 - x)
+                        else:
+                            pix[j] = pix[j] - (x + 1)
+            # bit 6 for hiding
+            if bit_length == 6:
+                for j in range(0, 8):
+                    if datalist[i][j] == '1' and (pix[j] & 0x40) != 0:
+                        # print("datalist[i][j] == '1' -> :", datalist, "pix[j] != ", pix[j])
                         continue
-                    x = pix[j] & 0x3F  # decimal 63
-                    if x >= 32:
-                        pix[j] = pix[j] + (64 - x)
-                    else:
-                        pix[j] = pix[j] - (x + 1)
-                if datalist[i][j] == '0':
-                    pix[j] = pix[j] & 0xBF  # 0xBF = 191
-                elif datalist[i][j] == '1':
-                    pix[j] = pix[j] | 0x40  # 0x40 = 64 decimal
-                if datalist[i][j] == '0':
-                    if pix[j] >= 191:
-                        pix[j] = 191
+                    if datalist[i][j] == '0' and (pix[j] & 0x40) == 0:
+                        # print("datalist[i][j] == '0' -> : ", datalist, "pix[j] == ", pix[j])
                         continue
-                    x = pix[j] & 0x3F  # 0x3F = 63 decimal
-                    if x >= 32:
-                        pix[j] = pix[j] + (64 - x)
-                    else:
-                        pix[j] = pix[j] - (x + 1)
+                    if datalist[i][j] == '1':
+                        if pix[j] <= 64:
+                            pix[j] = 64
+                            continue
+                        x = pix[j] & 0x3F  # decimal 63
+                        if x >= 32:
+                            pix[j] = pix[j] + (64 - x)
+                        else:
+                            pix[j] = pix[j] - (x + 1)
+                    # if datalist[i][j] == '0':
+                    #     pix[j] = pix[j] & 0xBF  # 0xBF = 191
+                    # elif datalist[i][j] == '1':
+                    #     pix[j] = pix[j] | 0x40  # 0x40 = 64 decimal
+                    if datalist[i][j] == '0':
+                        if pix[j] >= 191:
+                            pix[j] = 190
+                            continue
+                        x = pix[j] & 0x3F  # 0x3F = 63 decimal
+                        if x >= 32:
+                            pix[j] = pix[j] + (64 - x)
+                        else:
+                            pix[j] = pix[j] - (x + 1)
 
 
         # eight pixels of every set tells to stop or to keep reading
@@ -167,20 +173,22 @@ def encode_enc(newimg, data):
             x += 1
 
 
-def encode():
-    data_file = sys.argv[4]
+def encode(data_file, cover_file, stego_file):  # data_file, cover_file, stego_file
+    # data_file = sys.argv[3]
     image = Image.open(data_file, 'r')
+    print("opens image")
 
-    cover_file = sys.argv[5]
+    # cover_file = sys.argv[4]
     if len(cover_file) == 0:
         raise ValueError('Data is empty')
 
     # read file for embedded message to be hidden
-    data = sys.argv[5]
+    data = cover_file
+    print('data not empty')
     newimg = image.copy()
     encode_enc(newimg, data)
 
-    stego_file = sys.argv[6]
+    # stego_file = sys.argv[5]
     newimg.save(stego_file)
 
 
@@ -188,7 +196,8 @@ def encode():
 def decode(decodeImage, data_file):
     num_bytes = 0
     img = Image.open(decodeImage, 'r')
-
+    bit_length = sys.argv[4]
+    print(bit_length)
     data = ''
     imgdata = iter(img.getdata())
 
@@ -200,27 +209,25 @@ def decode(decodeImage, data_file):
         # string of binary data
         binstr = ''
 
-        # if bit_length == 4:
         for i in pixels[:8]:
-            if i & 0x10 == 0:
-                binstr += '0'
-            else:
-                binstr += '1'
+            if bit_length == '4':
+                if i & 0x10 == 0:
+                    binstr += '0'
+                else:
+                    binstr += '1'
+            if bit_length == '5':
+                if i & 0x20 == 0:
+                    binstr += '0'
+                else:
+                    binstr += '1'
+            if bit_length == '6':
+                if i & 0x40 == 0:
+                    binstr += '0'
+                else:
+                    binstr += '1'
 
-        # if bit_length == 5:
-        # for i in pixels[:8]:
-        #   if i & 0x20 == 0:
-        # binstr += '0'
-        # else:
-        # binstr += '1'
-
-        # if bit_length == 6:
-        # for i in pixels[:8]:
-        #   if i & 0x40 == 0:
-        # binstr += '0'
-        # else:
-        # binstr += '1'
-
+        # int to char base 2 and return the decoded message
+        # I think this is incorrect the way it's returning the decoded message,
         # data += chr(int(binstr, 2))
         # if pixels[-1] % 2 != 0:
         #     return data
@@ -232,16 +239,24 @@ def decode(decodeImage, data_file):
 
 def main():
     # ecnode flag
-    program_flag = sys.argv[1]
-    bit_flag = sys.argv[2]
+    # bit_flag = sys.argv[2]
 
-    if program_flag == 'h':
-        encode()
+    if sys.argv[2] == 'h':
+        data_file = sys.argv[3]
+        cover_file = sys.argv[4]
+        stego_file = sys.argv[5]
+        encode(data_file, cover_file, stego_file)
+    elif sys.argv[1] == 'h':
+        data_file = sys.argv[2]
+        cover_file = sys.argv[3]
+        stego_file = sys.argv[4]
+        encode(data_file, cover_file, stego_file)
 
     # decode flag
-    if program_flag == 'e':
+    if sys.argv[1] == 'e':
         stego_file = sys.argv[2]
         data_file = sys.argv[3]
+
         # decode image
         data_message = decode(stego_file, data_file)
         # write back to file
