@@ -127,8 +127,8 @@ def modePix(pix, data):
                     # elif datalist[i][j] == '1':
                     #     pix[j] = pix[j] | 0x40  # 0x40 = 64 decimal
                     if datalist[i][j] == '0':
-                        if pix[j] >= 191:
-                            pix[j] = 190
+                        if pix[j] >= 192:
+                            pix[j] = 191
                             continue
                         x = pix[j] & 0x3F  # 0x3F = 63 decimal
                         if x >= 32:
@@ -176,7 +176,7 @@ def encode_enc(newimg, data):
 def encode(data_file, cover_file, stego_file):  # data_file, cover_file, stego_file
     # data_file = sys.argv[3]
     image = Image.open(data_file, 'r')
-    print("opens image")
+    # print("opens image")
 
     # cover_file = sys.argv[4]
     if len(cover_file) == 0:
@@ -184,7 +184,7 @@ def encode(data_file, cover_file, stego_file):  # data_file, cover_file, stego_f
 
     # read file for embedded message to be hidden
     data = cover_file
-    print('data not empty')
+    # print('data not empty')
     newimg = image.copy()
     encode_enc(newimg, data)
 
