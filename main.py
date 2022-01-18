@@ -8,38 +8,70 @@ from PIL import Image
 import sys
 
 
+# adds length of bytes to the data
+def addBitandLength(new_data, message_length):
+    # print(new_data)
+    new_data.append(bin(int(sys.argv[1], base=16)).lstrip('0b'))
+    # print("first byte = ", new_data)
+    # print("length of the message in binary", bin(message_length).lstrip('0b'), "and in bytes", message_length)
+    tmp = message_length
+    for i in range(4):
+        x = tmp & 0xFF
+        new_data.append(bin(x).lstrip('0b'))
+        tmp = tmp >> 8
+    # print(new_data)
+
+
 # manage the manipulation of the message file to be embedded
 def generateData(data):
     file = open(data).read()
 
     # list of given data in binary array
     new_data = []
+    length_data = len(data)
+
+    # first hides number of bits
+    if sys.argv[1] == '4':
+        message_length = os.stat(sys.argv[4]).st_size
+        addBitandLength(new_data, message_length)
+    elif sys.argv[1] == '5':
+        message_length = os.stat(sys.argv[4]).st_size
+        addBitandLength(new_data, message_length)
+    elif sys.argv[1] == '6':
+        message_length = os.stat(sys.argv[4]).st_size
+        addBitandLength(new_data, message_length)
 
     for i in file:
         new_data.append(format(ord(i), '08b'))
+
+    # second hides the length of the message
 
     return new_data
 
 
 # pixels are changed into 8 bit binary
 def modePix(pix, data):
-
     bit_length = ''
     datalist = generateData(data)
     lendata = len(datalist)
     imdata = iter(pix)
-
+    print(lendata)
     if len(sys.argv) < 6 or sys.argv[1] == '4':
         bit_length = '4'
+        message_bit_position = 4
         # print('4')
     elif sys.argv[1] == '5':
         bit_length = 5
+        message_bit_position = 5
         # print('5')
     elif sys.argv[1] == '6':
         bit_length = 6
+        message_bit_position = 6
         # print('6')
 
-    # if bit_length == 4:
+    # initialize byte object
+
+    # print(lendata)
     for i in range(lendata):
         # extract 3 pixels at the time
         pix = [value for value in imdata.__next__()[:3] +
@@ -77,25 +109,35 @@ def modePix(pix, data):
             if bit_length == 5:
                 for j in range(0, 8):
                     if datalist[i][j] == '1' and (pix[j] & 0x20) != 0:
-                        # print("datalist[i][j] == '1' -> :", datalist, "pix[j] != ", pix[j])
+                        # print("datalist[i][j] == '1' -> :", datalist[i][j], "pix[j] != ", pix[j])
+                        # print("pix[j] in hex !=", hex(pix[j]))
                         continue
                     if datalist[i][j] == '0' and (pix[j] & 0x20) == 0:
-                        # print("datalist[i][j] == '0' -> : ", datalist, "pix[j] == ", pix[j])
+                        # print("datalist[i][j] == '0' -> : ", datalist[i][j], "pix[j] == ", pix[j])
+                        # print("pix[j] in hex ==", hex(pix[j]))
                         continue
                     if datalist[i][j] == '1':
                         if pix[j] <= 32:
+                            # print("if pix[j] <= 32 : ", pix[j], ' = 32')
+                            # print("pix[j] in hex =", hex(pix[j]))
                             pix[j] = 32
                             continue
                         x = pix[j] & 0x1F  # 31
+                        # print('x = ', x)
+                        # print("x in hex =", hex(x))
                         if x >= 16:
                             pix[j] = pix[j] + (32 - x)
+                            # print('pix[j] = pix[j] + (32 - x)= ', pix[j])
+                            # print('pix[j] in hex =", hex(pix[j]')
                         else:
+                            # print("else: ", pix[j])
                             pix[j] = pix[j] - (x + 1)
                     # if datalist[i][j] == '0':
                     #     pix[j] = pix[j] & 0xDF  # 0xDF = 223
                     # elif datalist[i][j] == '1':
                     #     pix[j] = pix[j] | 0x20  # 0x20 = 32 decimal
                     if datalist[i][j] == '0':
+
                         if pix[j] >= 224:
                             pix[j] = 223
                             continue
@@ -104,6 +146,7 @@ def modePix(pix, data):
                             pix[j] = pix[j] + (32 - x)
                         else:
                             pix[j] = pix[j] - (x + 1)
+                print("j: ", j)
             # bit 6 for hiding
             if bit_length == 6:
                 for j in range(0, 8):
@@ -135,7 +178,6 @@ def modePix(pix, data):
                             pix[j] = pix[j] + (64 - x)
                         else:
                             pix[j] = pix[j] - (x + 1)
-
 
         # eight pixels of every set tells to stop or to keep reading
         # 0 means message is done
@@ -192,12 +234,20 @@ def encode(data_file, cover_file, stego_file):  # data_file, cover_file, stego_f
     newimg.save(stego_file)
 
 
+
+# def extractBitandLength():
+#
+#     for i in range(4):
+#         tmp = tmp + x
+#         tmp = tmp << 8
+#     pass
+
 # decode function
 def decode(decodeImage, data_file):
     num_bytes = 0
     img = Image.open(decodeImage, 'r')
     bit_length = sys.argv[4]
-    print(bit_length)
+    # extractBitandLength()
     data = ''
     imgdata = iter(img.getdata())
 
