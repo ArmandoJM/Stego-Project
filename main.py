@@ -15,11 +15,12 @@ def addBitandLength(new_data, message_length):
     # print("first byte = ", new_data)
     # print("length of the message in binary", bin(message_length).lstrip('0b'), "and in bytes", message_length)
     tmp = message_length
+
     for i in range(4):
         x = tmp & 0xFF
         new_data.append(bin(x).lstrip('0b'))
         tmp = tmp >> 8
-    # print(new_data)
+    return new_data
 
 
 # manage the manipulation of the message file to be embedded
@@ -55,7 +56,7 @@ def modePix(pix, data):
     datalist = generateData(data)
     lendata = len(datalist)
     imdata = iter(pix)
-    print(lendata)
+    # print(datalist)
     if len(sys.argv) < 6 or sys.argv[1] == '4':
         bit_length = '4'
         message_bit_position = 4
@@ -81,12 +82,11 @@ def modePix(pix, data):
         # Pixel value should be made
         # odd for 1 and even for 0
         for j in range(0, 8):
+            print(datalist)
             if bit_length == 4:  # note to yourself use ' ' not just 4 by itself dumbdumb
                 if datalist[i][j] == '1' and (pix[j] & 0x10) != 0:
-                    # print("datalist[i][j] == '1' -> :", datalist, "pix[j] != ", pix[j])
                     continue
                 if datalist[i][j] == '0' and (pix[j] & 0x10) == 0:
-                    # print("datalist[i][j] == '0' -> : ", datalist, "pix[j] == ", pix[j])
                     continue
                 if datalist[i][j] == '1':
                     if pix[j] <= 16:
@@ -109,35 +109,19 @@ def modePix(pix, data):
             if bit_length == 5:
                 for j in range(0, 8):
                     if datalist[i][j] == '1' and (pix[j] & 0x20) != 0:
-                        # print("datalist[i][j] == '1' -> :", datalist[i][j], "pix[j] != ", pix[j])
-                        # print("pix[j] in hex !=", hex(pix[j]))
                         continue
                     if datalist[i][j] == '0' and (pix[j] & 0x20) == 0:
-                        # print("datalist[i][j] == '0' -> : ", datalist[i][j], "pix[j] == ", pix[j])
-                        # print("pix[j] in hex ==", hex(pix[j]))
                         continue
                     if datalist[i][j] == '1':
                         if pix[j] <= 32:
-                            # print("if pix[j] <= 32 : ", pix[j], ' = 32')
-                            # print("pix[j] in hex =", hex(pix[j]))
                             pix[j] = 32
                             continue
                         x = pix[j] & 0x1F  # 31
-                        # print('x = ', x)
-                        # print("x in hex =", hex(x))
                         if x >= 16:
                             pix[j] = pix[j] + (32 - x)
-                            # print('pix[j] = pix[j] + (32 - x)= ', pix[j])
-                            # print('pix[j] in hex =", hex(pix[j]')
                         else:
-                            # print("else: ", pix[j])
                             pix[j] = pix[j] - (x + 1)
-                    # if datalist[i][j] == '0':
-                    #     pix[j] = pix[j] & 0xDF  # 0xDF = 223
-                    # elif datalist[i][j] == '1':
-                    #     pix[j] = pix[j] | 0x20  # 0x20 = 32 decimal
                     if datalist[i][j] == '0':
-
                         if pix[j] >= 224:
                             pix[j] = 223
                             continue
@@ -146,7 +130,6 @@ def modePix(pix, data):
                             pix[j] = pix[j] + (32 - x)
                         else:
                             pix[j] = pix[j] - (x + 1)
-                print("j: ", j)
             # bit 6 for hiding
             if bit_length == 6:
                 for j in range(0, 8):
@@ -234,10 +217,9 @@ def encode(data_file, cover_file, stego_file):  # data_file, cover_file, stego_f
     newimg.save(stego_file)
 
 
-
 # def extractBitandLength():
 #
-#     for i in range(4):
+#     for x in range(4):
 #         tmp = tmp + x
 #         tmp = tmp << 8
 #     pass
