@@ -7,8 +7,6 @@ import sys
 from PIL import Image
 import sys
 
-global message_length
-
 
 # Subtract 8 bits from current length to get how many 0s to pad for one-byte length.
 def pad_to_byte(bitstring):
@@ -29,6 +27,7 @@ def addBitandLength(new_data, message_length):
         new_data.append(bitstring)
         # bit shift right
         tmp = tmp >> 8
+    return new_data
 
 
 # manage the manipulation of the message file to be embedded
@@ -38,19 +37,20 @@ def generateData(data):
     # list of given data in binary array
     new_data = []
     length_data = len(data)
+    print(length_data)
 
     # first hides number of bits
-    # if sys.argv[1] == '4':
-    #     message_length = os.stat(sys.argv[4]).st_size
-    #     addBitandLength(new_data, message_length)
-    if (sys.argv[1]) == '5':
+    if sys.argv[1] == '4':
         message_length = int(sys.argv[1])
         addBitandLength(new_data, message_length)
-    # if sys.argv[1] == '6':
-    #     message_length = os.stat(sys.argv[4]).st_size
+    # if (sys.argv[1]) == '5':
+    #     message_length = int(sys.argv[1])
     #     addBitandLength(new_data, message_length)
+    if (sys.argv[1]) == '6':
+        message_length = int(sys.argv[1])
+        addBitandLength(new_data, message_length)
 
-    print(len(new_data[2]))
+    print(new_data)
     for i in file:
         new_data.append(format(ord(i), '08b'))
 
@@ -63,15 +63,14 @@ def generateData(data):
 def modePix(pix, data):
     bit_length = ''
     datalist = generateData(data)
-    global message_length
     lendata = len(datalist)
-
+    print(lendata)
     # variable use for extraction
     message_length = lendata
     imdata = iter(pix)
 
     if len(sys.argv) < 6 or sys.argv[1] == '4':
-        bit_length = '4'
+        bit_length = 4
         message_bit_position = 4
         # print('4')
     elif sys.argv[1] == '5':
@@ -96,35 +95,32 @@ def modePix(pix, data):
         # odd for 1 and even for 0
         for j in range(0, 8):
             if bit_length == 4:  # note to yourself use ' ' not just 4 by itself dumbdumb
-                if datalist[i][j] == '1' and (pix[j] & 0x10) != 0:
-                    # print("datalist[i][j] == '1' -> :", datalist, "pix[j] != ", pix[j])
-                    continue
-                if datalist[i][j] == '0' and (pix[j] & 0x10) == 0:
-                    # print("datalist[i][j] == '0' -> : ", datalist, "pix[j] == ", pix[j])
-                    continue
-                if datalist[i][j] == '1':
-                    if pix[j] <= 16:
-                        pix[j] = 16
+                for k in range(0, 8):
+                    if datalist[i][j] == '1' and (pix[j] & 0x10) != 0:
                         continue
-                    x = pix[j] & 0xF
-                    if x >= 8:
-                        pix[j] = pix[j] + (16 - x)
-                    else:
-                        pix[j] = pix[j] - (x + 1)
-                if datalist[i][j] == '0':
-                    if pix[j] >= 240:
-                        pix[j] = 239
+                    if datalist[i][j] == '0' and (pix[j] & 0x10) == 0:
                         continue
-                    x = pix[j] & 0xF  # 0xF = 15 decimal
-                    if x >= 8:
-                        pix[j] = pix[j] + (16 - x)
-                    else:
-                        pix[j] = pix[j] - (x + 1)
+                    if datalist[i][j] == '1':
+                        if pix[j] <= 16:
+                            pix[j] = 16
+                            continue
+                        x = pix[j] & 0xF
+                        if x >= 8:
+                            pix[j] = pix[j] + (16 - x)
+                        else:
+                            pix[j] = pix[j] - (x + 1)
+                    if datalist[i][j] == '0':
+                        if pix[j] >= 240:
+                            pix[j] = 239
+                            continue
+                        x = pix[j] & 0xF  # 0xF = 15 decimal
+                        if x >= 8:
+                            pix[j] = pix[j] + (16 - x)
+                        else:
+                            pix[j] = pix[j] - (x + 1)
             if bit_length == 5:
                 for k in range(0, 8):
                     if datalist[i][j] == '1' and (pix[j] & 0x20) != 0:
-                        # print("datalist[i][j] == '1' -> :", datalist[i][j], "pix[j] != ", pix[j])
-                        # print("pix[j] in hex !=", hex(pix[j]))
                         continue
                     if datalist[i][j] == '0' and (pix[j] & 0x20) == 0:
                         # print("datalist[i][j] == '0' -> : ", datalist[i][j], "pix[j] == ", pix[j])
@@ -160,13 +156,11 @@ def modePix(pix, data):
                         else:
                             pix[j] = pix[j] - (x + 1)
             # bit 6 for hiding
-            if bit_length == '6':
+            if bit_length == 6:
                 for k in range(0, 8):
                     if datalist[i][j] == '1' and (pix[j] & 0x40) != 0:
-                        # print("datalist[i][j] == '1' -> :", datalist, "pix[j] != ", pix[j])
                         continue
                     if datalist[i][j] == '0' and (pix[j] & 0x40) == 0:
-                        # print("datalist[i][j] == '0' -> : ", datalist, "pix[j] == ", pix[j])
                         continue
                     if datalist[i][j] == '1':
                         if pix[j] <= 64:
@@ -246,14 +240,6 @@ def encode(data_file, cover_file, stego_file):  # data_file, cover_file, stego_f
     newimg.save(stego_file)
 
 
-def extractBitandLength(img):
-    imgdata = iter(img.getdata())
-    bit_length = '5'
-    data = ''
-    # x is the  first 8 bits of length. Which means range(5) o
-    tmp = 3251
-    pass
-
 # decode function
 def decode(decodeImage, data_file):
     num_bytes = 0
@@ -261,38 +247,21 @@ def decode(decodeImage, data_file):
 
     pix = img.load()
 
-    # bit_shift = extractBitandLength(img)
-    # print(bit_shift)
-    # opening a file
-
-    # print(pix[0, 0])
-    # print(pix[1, 0])
-    # # print(pix[2, 0])
-    # print(pix[3, 0])
-    # print(pix[4, 0])
-    # # print(pix[5, 0])
-    # print(pix[6, 0])
-    # print(pix[7, 0])
-    # # print(pix[8, 0])
-    # print(pix[9, 0])
-    # print(pix[10, 0])
-    # # print(pix[11, 0])
-    # print(pix[12, 0])
-    #print(pix[13, 0])
-
     bit_length = sys.argv[4]
     # extractBitandLength()
     data = ''
 
     imgdata = iter(img.getdata())
 
+    # Iterate through the 5 bytes
     for i in range(5):  # for i in range(5)
         pixels = [value for value in imgdata.__next__()[:3] +
                   imgdata.__next__()[:3] + imgdata.__next__()[:3]]
 
         binstr = ''
 
-        for j in pixels[0:13]:  # for j in pixels[0:13]:
+        # Iterate through 13 pixels which the 8 bits of each byte are allocated:
+        for j in pixels[0:13]:
             k = i + j
             k = k >> 8
             binstr += str(k)
