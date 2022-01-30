@@ -40,12 +40,12 @@ def generateData(data):
     print(length_data)
 
     # first hides number of bits
-    if sys.argv[1] == '4':
+    if len(sys.argv) < 6 or sys.argv[1] == '4':
         message_length = int(sys.argv[1])
         addBitandLength(new_data, message_length)
-    # if (sys.argv[1]) == '5':
-    #     message_length = int(sys.argv[1])
-    #     addBitandLength(new_data, message_length)
+    if (sys.argv[1]) == '5':
+        message_length = int(sys.argv[1])
+        addBitandLength(new_data, message_length)
     if (sys.argv[1]) == '6':
         message_length = int(sys.argv[1])
         addBitandLength(new_data, message_length)
@@ -247,7 +247,7 @@ def decode(decodeImage, data_file):
 
     pix = img.load()
 
-    bit_length = sys.argv[4]
+    bit_length = int(sys.argv[4])
     # extractBitandLength()
     data = ''
 
@@ -276,14 +276,14 @@ def decode(decodeImage, data_file):
         binstr = ''
 
         for i in pixels[:8]:
-            if bit_length == '4':
+            if bit_length == 4:
                 if i & 0x10 == 0:
                     binstr += '0'
                     # print(binstr)
                 else:
                     binstr += '1'
                     # print(binstr)
-            if bit_length == '5':
+            if bit_length == 5:
                 if i & 0x20 == 0:
                     # print(" i & 0x20 = ", i)
                     binstr += '0'
@@ -292,7 +292,7 @@ def decode(decodeImage, data_file):
                     # print("else i = ", i)
                     binstr += '1'
                     # print(binstr)
-            if bit_length == '6':
+            if bit_length == 6:
                 if i & 0x40 == 0:
                     binstr += '0'
                     # print(binstr)
